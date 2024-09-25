@@ -41,10 +41,7 @@ def main():
     feature_extraction_controller = FeatureExtractionController(extract_features_use_case)
 
     # Load the sample audio file
-    # audio_file_path = '/home/ono/Projects/Audiong/sample_audio/Disturbed-in-the-Wind.mp3'
-    audio_file_path = '/home/ono/Projects/Audiong/sample_audio/Grieg_Cello_Sonata_in_A_minor_M_Maisky,_M_Argerich_1st_Movement.mp3'
-    # audio_file_path = '/home/ono/Projects/Audiong/sample_audio/Knife Edge.mp3'
-    # audio_file_path = '/home/ono/Projects/Audiong/sample_audio/Thom_Yorke_Ft_Flea_Daily_Battle.mp3'
+    audio_file_path = '/home/ono/Projects/Audiong/sample_audio/Bm.95576-Distorted_electric_guitar_plays_B_minor_eleventh-BLASTWAVEFX-27463.wav'
 
     # Create a mock request object with the audio file details
     request = mock_request(audio_file_path)
