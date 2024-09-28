@@ -1,20 +1,26 @@
 """
-Module: Librosa Feature Extractor
+Module: Librosa Feature Extractor with K-S Algorithm
 Location: src/infrastructure/librosa_feature_extractor.py
-Implements the extraction of musical features using librosa.
+Implements the extraction of musical features using the Librosa library,
+with key estimation handled by the Krumhansl-Schmuckler algorithm.
 """
 
 import librosa
-import numpy as np
-from src.entities.audio_file import AudioFile
+from src.infrastructure.ks_key_finder import KrumhanslSchmucklerKeyFinder
+from entities.audio_file import AudioFile
+
 
 class LibrosaFeatureExtractor:
     """
-    Implements the extraction of musical features (tempo, key, pitch, rhythm) from audio files using librosa.
+    Implements the extraction of musical features (tempo, key, pitch, rhythm) from audio files using Librosa,
+    and uses the Krumhansl-Schmuckler algorithm for key estimation.
 
     Methods:
         extract: Extracts musical features from the given audio file.
     """
+
+    def __init__(self):
+        self.ks_key_finder = KrumhanslSchmucklerKeyFinder()
 
     def extract(self, audio_file: AudioFile):
         """
@@ -29,42 +35,25 @@ class LibrosaFeatureExtractor:
         # Load the audio file using librosa
         y, sr = librosa.load(audio_file.file_path, sr=audio_file.sample_rate)
 
-        # Extract tempo and beat frames
+        # Extract tempo
         tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
 
-        # Estimate key (based on chroma features)
-        chroma = librosa.feature.chroma_cqt(y=y, sr=sr)
-        key = self._estimate_key(chroma)
+        # Use K-S algorithm to estimate key
+        key = self.ks_key_finder.estimate_key(audio_file.file_path, audio_file.sample_rate)
 
-        # Extract pitch (using librosa's pitch detection)
+        # Extract pitch using librosa's pitch detection
         pitches, magnitudes = librosa.core.piptrack(y=y, sr=sr)
         pitch_values = self._get_pitch_values(pitches, magnitudes)
 
-        # Convert beat frames to time (rhythm)
+        # Rhythm (time of beats)
         rhythm = librosa.frames_to_time(beat_frames, sr=sr)
 
         return {
             "tempo": tempo,
             "key": key,
             "pitch": pitch_values[:10],  # Return first 10 pitch values for simplicity
-            "rhythm": rhythm.tolist()    # Convert numpy array to list
+            "rhythm": rhythm.tolist()  # Convert numpy array to list
         }
-
-    def _estimate_key(self, chroma):
-        """
-        Estimate the musical key from chroma features.
-
-        Args:
-            chroma (np.ndarray): Chroma feature matrix.
-
-        Returns:
-            str: Estimated key as a string.
-        """
-        chroma_means = chroma.mean(axis=1)
-        key_index = np.argmax(chroma_means)
-        # Mapping key index to musical keys (e.g., C major, D major, etc.)
-        keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-        return f"{keys[key_index]} major"
 
     def _get_pitch_values(self, pitches, magnitudes):
         """

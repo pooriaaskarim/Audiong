@@ -3,9 +3,12 @@ Main entry point for the music interpreter backend service.
 This script sets up the controllers, use cases, and services for the application and processes an audio file.
 """
 
+import os
 from src.interface_adapters import AudioUploadController, FeatureExtractionController
 from src.use_cases import TranscribeAudioToScore, ExtractMusicalFeatures
-from src.infrastructure import LibrosaTranscriptionService, LibrosaFeatureExtractor
+from src.infrastructure.librosa_feature_extractor import LibrosaFeatureExtractor
+from src.infrastructure.librosa_transcription_service import LibrosaTranscriptionService
+
 
 def mock_request(file_path):
     """
@@ -24,11 +27,12 @@ def mock_request(file_path):
         }
     }
 
+
 def main():
     """
     Main function to set up the backend services, controllers, and process the sample audio file.
     """
-    # Set up the services and use cases
+    # Set up the services and use cases using Librosa
     transcription_service = LibrosaTranscriptionService()
     feature_extractor_service = LibrosaFeatureExtractor()
 
@@ -41,20 +45,24 @@ def main():
     feature_extraction_controller = FeatureExtractionController(extract_features_use_case)
 
     # Load the sample audio file
-    audio_file_path = '/home/ono/Projects/Audiong/sample_audio/Bm.95576-Distorted_electric_guitar_plays_B_minor_eleventh-BLASTWAVEFX-27463.wav'
+    audio_file_path = '/home/ono/Projects/Audiong/sample_audio/Sunset-And-The-Mockingbird-—-Duke-Ellington_4819711.mp3'
 
     # Create a mock request object with the audio file details
     request = mock_request(audio_file_path)
 
     # Process the audio file with the audio upload controller
-    print("Audio upload and transcription process starts...")
+    print("Audio upload and transcription process starts (using Librosa)...")
     transcription_result = audio_upload_controller.upload_audio(request)
-    print(f"Transcription Result: MIDI Data (sample): {transcription_result.midi_data[:5]}, Score Data: {transcription_result.score_data[:100]}...")
+    print(
+        f"Transcription Result: MIDI Data (sample): {transcription_result.midi_data[:5]},"
+        f" Score Data: {transcription_result.score_data[:100]}...")
 
     # Extract musical features
-    print("Musical feature extraction starts...")
+    print("Musical feature extraction starts (using Librosa with K-S algorithm)...")
     feature_result = feature_extraction_controller.extract_features(request)
-    print(f"Musical Features - Tempo: {feature_result.tempo}, Key: {feature_result.key}, Pitch: {feature_result.pitch[:10]}, Rhythm: {feature_result.rhythm[:5]}")
+    print(
+        f"Musical Features - Tempo: {feature_result.tempo}, Key: {feature_result.key}, Pitch: {feature_result.pitch[:10]}, Rhythm: {feature_result.rhythm[:5]}")
+
 
 if __name__ == "__main__":
     main()
