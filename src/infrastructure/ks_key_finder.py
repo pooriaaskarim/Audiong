@@ -1,21 +1,31 @@
 """
-Module: Krumhansl-Schmuckler Key Finding Algorithm
+Module: Krumhansl-Schmuckler Key Finding Algorithm with Genre-Specific Profiles
 Location: src/infrastructure/ks_key_finder.py
-Implements the Krumhansl-Schmuckler key-finding algorithm using pitch-class profiles and chroma features.
+Implements the Krumhansl-Schmuckler key-finding algorithm with genre-specific profiles for better accuracy.
 """
 
-import librosa
 import numpy as np
-
-# Krumhansl-Schmuckler Major and Minor Key Profiles
-major_profile = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88]
-minor_profile = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17]
+import librosa
+from src.infrastructure.genre_profile import GeneralProfile, ClassicalProfile, JazzProfile, PopProfile
 
 
 class KrumhanslSchmucklerKeyFinder:
     """
-    Implements the Krumhansl-Schmuckler key-finding algorithm.
+    Implements the Krumhansl-Schmuckler key-finding algorithm with genre-specific profiles.
     """
+
+    def __init__(self, genre='general'):
+        """
+        Initializes the Krumhansl-Schmuckler algorithm with the appropriate genre-specific profiles.
+        """
+        if genre == 'classical':
+            self.genre_profile = ClassicalProfile()
+        elif genre == 'jazz':
+            self.genre_profile = JazzProfile()
+        elif genre == 'pop':
+            self.genre_profile = PopProfile()
+        else:
+            self.genre_profile = GeneralProfile()  # Default to general
 
     def estimate_key(self, audio_file_path, sample_rate=44100):
         """
@@ -36,8 +46,8 @@ class KrumhanslSchmucklerKeyFinder:
         chroma_profile = np.mean(chroma, axis=1)
 
         # Correlate with major and minor profiles for all 12 keys
-        major_correlations = self._correlate_profiles(chroma_profile, major_profile)
-        minor_correlations = self._correlate_profiles(chroma_profile, minor_profile)
+        major_correlations = self._correlate_profiles(chroma_profile, self.genre_profile.get_major_profile())
+        minor_correlations = self._correlate_profiles(chroma_profile, self.genre_profile.get_minor_profile())
 
         # Find the key with the highest correlation
         major_key_index = np.argmax(major_correlations)

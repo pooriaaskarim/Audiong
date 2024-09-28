@@ -1,5 +1,5 @@
 """
-Module: Librosa Feature Extractor with K-S Algorithm
+Module: Librosa Feature Extractor with K-S Algorithm and Genre-Specific Profiles
 Location: src/infrastructure/librosa_feature_extractor.py
 Implements the extraction of musical features using the Librosa library,
 with key estimation handled by the Krumhansl-Schmuckler algorithm.
@@ -7,7 +7,7 @@ with key estimation handled by the Krumhansl-Schmuckler algorithm.
 
 import librosa
 from src.infrastructure.ks_key_finder import KrumhanslSchmucklerKeyFinder
-from entities.audio_file import AudioFile
+from src.entities.audio_file import AudioFile  # Corrected Import
 
 
 class LibrosaFeatureExtractor:
@@ -19,8 +19,8 @@ class LibrosaFeatureExtractor:
         extract: Extracts musical features from the given audio file.
     """
 
-    def __init__(self):
-        self.ks_key_finder = KrumhanslSchmucklerKeyFinder()
+    def __init__(self, genre='general'):
+        self.ks_key_finder = KrumhanslSchmucklerKeyFinder(genre)
 
     def extract(self, audio_file: AudioFile):
         """
