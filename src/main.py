@@ -8,6 +8,7 @@ from src.interface_adapters import AudioUploadController, FeatureExtractionContr
 from src.use_cases import TranscribeAudioToScore, ExtractMusicalFeatures
 from src.infrastructure.librosa_feature_extractor import LibrosaFeatureExtractor
 from src.infrastructure.librosa_transcription_service import LibrosaTranscriptionService
+from src.infrastructure.real_time_transcription import RealTimeTranscriber
 
 
 def mock_request(file_path):
@@ -62,38 +63,46 @@ def main():
     """
     Main function to set up the backend services, controllers, and process the sample audio file.
     """
-    # Get the genre from user input
-    genre = get_genre_from_user_input()
 
-    # Set up the services and use cases using Librosa
-    transcription_service = LibrosaTranscriptionService()
-    feature_extractor_service = LibrosaFeatureExtractor(genre=genre)
+    # Real-time transcription option
+    print("Do you want to run real-time audio transcription and visualization? (y/n)")
+    if input().lower() == 'y':
+        # Example usage:
+        transcriber = RealTimeTranscriber()
+        transcriber.start_transcription(duration=10)
 
-    # Set up use cases
-    transcribe_audio_use_case = TranscribeAudioToScore(transcription_service)
-    extract_features_use_case = ExtractMusicalFeatures(feature_extractor_service)
 
-    # Set up controllers
-    audio_upload_controller = AudioUploadController(transcribe_audio_use_case)
-    feature_extraction_controller = FeatureExtractionController(extract_features_use_case)
+    else:
+        # Get the genre from user input
+        genre = get_genre_from_user_input()
 
-    # Load the sample audio file
-    audio_file_path = '/home/ono/Projects/Audiong/sample_audio/02 - XII. Allegro.flac'
+        # Set up the services and use cases using Librosa
+        transcription_service = LibrosaTranscriptionService()
+        feature_extractor_service = LibrosaFeatureExtractor(genre=genre)
 
-    # Create a mock request object with the audio file details
-    request = mock_request(audio_file_path)
+        # Set up use cases
+        transcribe_audio_use_case = TranscribeAudioToScore(transcription_service)
+        extract_features_use_case = ExtractMusicalFeatures(feature_extractor_service)
 
-    # Process the audio file with the audio upload controller
-    print(f"Audio upload and transcription process starts (using Librosa, genre: {genre})...")
-    transcription_result = audio_upload_controller.upload_audio(request)
-    print(
-        f"Transcription Result: MIDI Data (sample): {transcription_result.midi_data[:5]}, Score Data: {transcription_result.score_data[:100]}...")
+        # Set up controllers
+        audio_upload_controller = AudioUploadController(transcribe_audio_use_case)
+        feature_extraction_controller = FeatureExtractionController(extract_features_use_case)
 
-    # Extract musical features
-    print(f"Musical feature extraction starts (using Librosa with K-S algorithm for {genre})...")
-    feature_result = feature_extraction_controller.extract_features(request)
-    print(
-        f"Musical Features - Tempo: {feature_result.tempo}, Key: {feature_result.key}, Pitch: {feature_result.pitch[:10]}, Rhythm: {feature_result.rhythm[:5]}")
+        # Load the sample audio file
+        audio_file_path = '/home/ono/Projects/Audiong/sample_audio/02 - XII. Allegro.flac'
+
+        # Create a mock request object with the audio file details
+        request = mock_request(audio_file_path)
+
+        # Process the audio file with the audio upload controller
+        print(f"Audio upload and transcription process starts (using Librosa, genre: {genre})...")
+        transcription_result = audio_upload_controller.upload_audio(request)
+        print(f"Transcription Result: {transcription_result}")
+
+        # Extract musical features
+        print(f"Musical feature extraction starts (using Librosa with K-S algorithm for {genre})...")
+        feature_result = feature_extraction_controller.extract_features(request)
+        print(f"Musical Features - Tempo: {feature_result.tempo}, Key: {feature_result.key}")
 
 
 if __name__ == "__main__":
